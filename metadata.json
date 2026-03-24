@@ -1,0 +1,5 @@
+{
+  "name": "MY-Grid AI: The Smart Neighborhood Aggregator",
+  "description": "A simulation and management dashboard for a virtual neighborhood of 50 Malaysian homes, featuring a Digital Twin, Dynamic Energy Price Spike Alerts, Virtual Power Plant (VPP), and V2G Orchestration.",
+  "requestFramePermissions": []
+}
