@@ -32,6 +32,8 @@ const generateInitialHomes = (): Home[] => {
       evChargingRate: 0,
       netLoad: 0,
       isV2GActive: false,
+      isAnomaly: Math.random() < 0.05, // 5% chance of anomaly
+      aiV2GLogic: "AI V2G Logic: Owner typically commutes at 07:30. Current EV Charge: 80%. Safe to discharge 15% to grid. Resuming charge at 02:00 when tariff drops to RM 0.15.",
     });
   }
   return homes;

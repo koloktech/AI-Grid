@@ -126,43 +126,56 @@ export const Dashboard: React.FC = () => {
                 </div>
                 
                 {/* AI Status Panel */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-                  <h3 className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4">AI Orchestrator Status</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-zinc-300">Grid Stress Level</span>
-                      <span className="text-sm font-mono text-white">
-                        {gridState.isPeak ? 'HIGH' : gridState.time >= 8 && gridState.time < 19 ? 'MEDIUM' : 'LOW'}
-                      </span>
-                    </div>
-                    <div className="w-full bg-zinc-800 rounded-full h-2">
-                      <motion.div 
-                        className={`h-2 rounded-full ${gridState.isPeak ? 'bg-red-500' : gridState.time >= 8 && gridState.time < 19 ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: gridState.isPeak ? '90%' : gridState.time >= 8 && gridState.time < 19 ? '50%' : '20%' }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-800">
-                      <div>
-                        <p className="text-xs text-zinc-500 mb-1">Total Load</p>
-                        <p className="text-lg font-mono text-white">{gridState.totalLoad.toFixed(1)} kW</p>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex flex-col gap-6">
+                  <div className="flex-1">
+                    <h3 className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4">AI Orchestrator Status</h3>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-zinc-300">Grid Stress Level</span>
+                        <span className="text-sm font-mono text-white">
+                          {gridState.isPeak ? 'HIGH' : gridState.time >= 8 && gridState.time < 19 ? 'MEDIUM' : 'LOW'}
+                        </span>
                       </div>
-                      <div>
-                        <p className="text-xs text-zinc-500 mb-1">Solar Gen</p>
-                        <p className="text-lg font-mono text-emerald-400">{gridState.totalSolar.toFixed(1)} kW</p>
+                      <div className="w-full bg-zinc-800 rounded-full h-2">
+                        <motion.div 
+                          className={`h-2 rounded-full ${gridState.isPeak ? 'bg-red-500' : gridState.time >= 8 && gridState.time < 19 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                          initial={{ width: 0 }}
+                          animate={{ width: gridState.isPeak ? '90%' : gridState.time >= 8 && gridState.time < 19 ? '50%' : '20%' }}
+                          transition={{ duration: 0.5 }}
+                        />
                       </div>
-                    </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-800">
+                        <div>
+                          <p className="text-xs text-zinc-500 mb-1">Total Load</p>
+                          <p className="text-lg font-mono text-white">{gridState.totalLoad.toFixed(1)} kW</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-zinc-500 mb-1">Solar Gen</p>
+                          <p className="text-lg font-mono text-emerald-400">{gridState.totalSolar.toFixed(1)} kW</p>
+                        </div>
+                      </div>
 
-                    <div className="pt-4 border-t border-zinc-800">
-                      <p className="text-xs text-zinc-400 leading-relaxed">
-                        {gridState.isPeak 
-                          ? "CRITICAL PEAK DETECTED. VPP has activated V2G protocols. EVs are currently discharging to offset neighborhood cooling loads and minimize grid draw."
-                          : gridState.time >= 8 && gridState.time < 19 
-                          ? "Daytime operations. Solar generation active. EVs charging from excess solar where available."
-                          : "Off-peak hours. Grid prices are low. EVs are charging to ensure 100% readiness for morning commute."}
-                      </p>
+                      <div className="pt-4 border-t border-zinc-800">
+                        <p className="text-xs text-zinc-400 leading-relaxed">
+                          {gridState.isPeak 
+                            ? "CRITICAL PEAK DETECTED. VPP has activated V2G protocols. EVs are currently discharging to offset neighborhood cooling loads and minimize grid draw."
+                            : gridState.time >= 8 && gridState.time < 19 
+                            ? "Daytime operations. Solar generation active. EVs charging from excess solar where available."
+                            : "Off-peak hours. Grid prices are low. EVs are charging to ensure 100% readiness for morning commute."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live AI Actions */}
+                  <div className="border-t border-zinc-800 pt-6">
+                    <h3 className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-4">Live AI Actions</h3>
+                    <div className="bg-black/50 rounded-lg p-3 font-mono text-xs text-zinc-400 h-32 overflow-y-auto space-y-2">
+                      <p>[20:58] ⚡ Dispatched 60kW V2G to offset RM 0.50 peak rate.</p>
+                      <p>[21:00] 🛑 Paused 12 smart water heaters to reduce local load.</p>
+                      <p>[21:02] 💰 Sold 5kW excess capacity back to Sarawak Grid.</p>
+                      <p>[21:05] ⚡ Dispatched 20kW V2G to offset RM 0.50 peak rate.</p>
                     </div>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Home } from '../types';
-import { Sun, Car, Zap, Home as HomeIcon } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Sun, Car, Zap, Home as HomeIcon, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { clsx } from 'clsx';
 
 interface GridMapProps {
@@ -9,6 +9,8 @@ interface GridMapProps {
 }
 
 export const GridMap: React.FC<GridMapProps> = ({ homes }) => {
+  const [selectedHome, setSelectedHome] = useState<Home | null>(null);
+
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
       <div className="flex items-center justify-between mb-6">
@@ -17,6 +19,7 @@ export const GridMap: React.FC<GridMapProps> = ({ homes }) => {
           <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Exporting</div>
           <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500"></div> Importing</div>
           <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> V2G Active</div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500"></div> AI Anomaly</div>
         </div>
       </div>
       
@@ -28,9 +31,11 @@ export const GridMap: React.FC<GridMapProps> = ({ homes }) => {
           return (
             <div 
               key={home.id} 
+              onClick={() => setSelectedHome(home)}
               className={clsx(
-                "relative aspect-square rounded-lg border p-2 flex flex-col items-center justify-center transition-colors duration-500",
+                "relative aspect-square rounded-lg border p-2 flex flex-col items-center justify-center transition-colors duration-500 cursor-pointer",
                 home.isV2GActive ? "bg-indigo-500/20 border-indigo-500/50" :
+                home.isAnomaly ? "bg-amber-500/20 border-amber-500/50 animate-pulse" :
                 isExporting ? "bg-emerald-500/10 border-emerald-500/30" :
                 isImporting ? "bg-red-500/10 border-red-500/30" :
                 "bg-zinc-800/50 border-zinc-700/50"
@@ -39,6 +44,7 @@ export const GridMap: React.FC<GridMapProps> = ({ homes }) => {
               <HomeIcon className={clsx(
                 "w-5 h-5 mb-1",
                 home.isV2GActive ? "text-indigo-400" :
+                home.isAnomaly ? "text-amber-400" :
                 isExporting ? "text-emerald-400" :
                 isImporting ? "text-red-400" :
                 "text-zinc-500"
@@ -60,6 +66,12 @@ export const GridMap: React.FC<GridMapProps> = ({ homes }) => {
                 </motion.div>
               )}
               
+              {home.isAnomaly && (
+                <div className="absolute top-1 left-1">
+                  <AlertTriangle className="w-3 h-3 text-amber-400" />
+                </div>
+              )}
+              
               <div className="absolute bottom-1 right-1 text-[8px] font-mono text-zinc-500">
                 {home.id}
               </div>
@@ -75,11 +87,42 @@ export const GridMap: React.FC<GridMapProps> = ({ homes }) => {
                     {home.isV2GActive && <div className="text-indigo-400">V2G: {Math.abs(home.evChargingRate).toFixed(1)}kW</div>}
                   </>
                 )}
+                {home.isAnomaly && <div className="text-amber-400 mt-1">Anomaly Detected</div>}
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* AI Reasoning Modal */}
+      <AnimatePresence>
+        {selectedHome && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedHome(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 max-w-sm w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-white mb-2">AI Reasoning: {selectedHome.id}</h3>
+              <p className="text-sm text-zinc-300 leading-relaxed">{selectedHome.aiV2GLogic}</p>
+              <button 
+                onClick={() => setSelectedHome(null)}
+                className="mt-6 w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -8,6 +8,8 @@ export interface Home {
   evChargingRate: number; // kW (positive = charging, negative = discharging)
   netLoad: number; // kW (positive = drawing from grid, negative = exporting)
   isV2GActive: boolean;
+  isAnomaly: boolean;
+  aiV2GLogic: string;
 }
 
 export interface GridState {
