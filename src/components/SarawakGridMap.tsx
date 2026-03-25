@@ -25,19 +25,19 @@ interface Connection {
   aiAlert?: string;
 }
 
-const nodes: Node[] = [
+const initialNodes: Node[] = [
   { id: 'kuching', name: 'Sejingkat', type: 'coal', x: 150, y: 480, status: 'active', capacity: '210 MW', output: 85 },
   { id: 'batang-ai', name: 'Batang Ai HEP', type: 'hydro', x: 280, y: 460, status: 'active', capacity: '108 MW', output: 90 },
   { id: 'mukah', name: 'Mukah Power', type: 'coal', x: 450, y: 320, status: 'active', capacity: '270 MW', output: 75 },
   { id: 'bintulu', name: 'Tanjung Kidurong', type: 'gas', x: 580, y: 240, status: 'active', capacity: '330 MW', output: 60 },
   { id: 'samalaju', name: 'Samalaju Node', type: 'substation', x: 650, y: 200, status: 'active', capacity: 'Transmission', output: 80, aiFocus: true },
-  { id: 'bakun', name: 'Bakun HEP', type: 'hydro', x: 680, y: 360, status: 'active', capacity: '2400 MW', output: 95 },
+  { id: 'bakun', name: 'Bakun HEP', type: 'hydro', x: 680, y: 360, status: 'active', capacity: '2400 MW', output: 75 },
   { id: 'murum', name: 'Murum HEP', type: 'hydro', x: 760, y: 380, status: 'active', capacity: '944 MW', output: 88 },
   { id: 'baleh', name: 'Baleh HEP', type: 'hydro', x: 700, y: 460, status: 'warning', capacity: '1285 MW', output: 0 },
   { id: 'miri', name: 'Miri Node', type: 'gas', x: 850, y: 120, status: 'active', capacity: '100 MW', output: 40 },
 ];
 
-const connections: Connection[] = [
+const initialConnections: Connection[] = [
   { from: 'murum', to: 'bakun', status: 'active', load: 85 },
   { from: 'baleh', to: 'bakun', status: 'warning', load: 0 },
   { from: 'bakun', to: 'samalaju', status: 'critical', load: 92, aiAlert: "AI Alert: 82% probability of line fault due to heavy winds predicted in 3 hours." },
@@ -58,19 +58,57 @@ const samalajuLoadData = [
 ];
 
 export const SarawakGridMap: React.FC = () => {
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [connections, setConnections] = useState<Connection[]>(initialConnections);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
   const [hoveredLine, setHoveredLine] = useState<Connection | null>(null);
-  const [frequency, setFrequency] = useState(50.00);
+  const [frequency, setFrequency] = useState(49.85);
   const [showSamalajuChart, setShowSamalajuChart] = useState(false);
   const [dispatchExecuted, setDispatchExecuted] = useState(false);
 
   // Simulate grid frequency fluctuations
   useEffect(() => {
     const interval = setInterval(() => {
-      setFrequency(50 + (Math.random() * 0.04 - 0.02));
-    }, 2000);
+      setFrequency(prev => {
+        if (dispatchExecuted) {
+          const diff = 50.00 - prev;
+          if (Math.abs(diff) < 0.01) return 50.00 + (Math.random() * 0.01 - 0.005);
+          return prev + diff * 0.2; // gradually move to 50.00
+        } else {
+          return 49.75 + (Math.random() * 0.2); // volatile between 49.75 and 49.95
+        }
+      });
+    }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [dispatchExecuted]);
+
+  const handleDispatch = () => {
+    setDispatchExecuted(true);
+    
+    // Update connections for dispatch animation
+    setConnections(prev => prev.map(conn => {
+      if (conn.from === 'bakun' && conn.to === 'samalaju') {
+        return { ...conn, status: 'active', aiAlert: undefined, isDispatching: true, dispatchDirection: 'forward' };
+      }
+      if (conn.from === 'bintulu' && conn.to === 'samalaju') {
+        return { ...conn, isDispatching: true, dispatchDirection: 'forward' };
+      }
+      if (conn.from === 'bintulu' && conn.to === 'mukah') {
+        return { ...conn, isDispatching: true, dispatchDirection: 'backward' };
+      }
+      if (conn.from === 'mukah' && conn.to === 'kuching') {
+        return { ...conn, isDispatching: true, dispatchDirection: 'backward' };
+      }
+      return conn;
+    }));
+
+    // Update nodes to show increased output
+    setNodes(prev => prev.map(node => {
+      if (node.id === 'bakun') return { ...node, output: 98 };
+      if (node.id === 'kuching') return { ...node, output: 100 };
+      return node;
+    }));
+  };
 
   const get3DIconStyle = (type: string, status: string) => {
     let baseColor = '';
@@ -217,10 +255,14 @@ export const SarawakGridMap: React.FC = () => {
                     <line 
                       x1={fromNode.x} y1={fromNode.y} 
                       x2={toNode.x} y2={toNode.y} 
-                      stroke="#10b981" 
-                      strokeWidth="2"
-                      strokeDasharray="8 16"
-                      className="animate-flow opacity-80"
+                      stroke={conn.isDispatching ? "#7C4DFF" : "#10b981"} 
+                      strokeWidth={conn.isDispatching ? "4" : "2"}
+                      strokeDasharray={conn.isDispatching ? "12 12" : "8 16"}
+                      className={clsx(
+                        "opacity-80",
+                        conn.dispatchDirection === 'backward' ? "animate-flow-reverse" : "animate-flow"
+                      )}
+                      style={conn.isDispatching ? { filter: 'drop-shadow(0 0 8px #7C4DFF)' } : {}}
                     />
                   )}
                   {/* AI Alert Icon on Line */}
@@ -235,6 +277,26 @@ export const SarawakGridMap: React.FC = () => {
               );
             })}
           </svg>
+
+          {/* Add CSS for flow animations */}
+          <style>
+            {`
+              @keyframes flow {
+                from { stroke-dashoffset: 24; }
+                to { stroke-dashoffset: 0; }
+              }
+              @keyframes flow-reverse {
+                from { stroke-dashoffset: 0; }
+                to { stroke-dashoffset: 24; }
+              }
+              .animate-flow {
+                animation: flow 1s linear infinite;
+              }
+              .animate-flow-reverse {
+                animation: flow-reverse 1s linear infinite;
+              }
+            `}
+          </style>
 
           {/* Nodes (HTML Overlay for better interactivity/tooltips) */}
           {nodes.map((node) => (
@@ -474,7 +536,7 @@ export const SarawakGridMap: React.FC = () => {
                   
                   {!dispatchExecuted && (
                     <button 
-                      onClick={() => setDispatchExecuted(true)}
+                      onClick={handleDispatch}
                       className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded transition-colors flex items-center justify-center gap-2"
                     >
                       Execute AI Dispatch

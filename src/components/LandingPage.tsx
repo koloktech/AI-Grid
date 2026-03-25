@@ -10,15 +10,88 @@ export const LandingPage = ({ onEnter }: LandingPageProps) => {
     <div className="relative min-h-screen bg-[#0a0a0f] text-white overflow-hidden flex items-center justify-center">
       {/* Background Image with Overlay */}
       <div 
-        className="absolute inset-0 z-0 opacity-30 mix-blend-screen"
+        className="absolute inset-0 z-0 opacity-50"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')`,
+          backgroundImage: `url('https://thumbs.dreamstime.com/b/sarawak-dun-state-legislative-assembly-building-view-waterfront-sarawak-river-night-sarawak-dun-state-381793434.jpg')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       />
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0a0a0f]/90 via-[#0a0a0f]/70 to-[#0a0a0f]" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#0a0a0f]/80 via-[#0a0a0f]/60 to-[#0a0a0f]" />
       
+      {/* Power Surge Flash */}
+      <motion.div 
+        className="absolute inset-0 z-0 bg-emerald-500/10 mix-blend-color-dodge pointer-events-none"
+        animate={{ opacity: [0, 0.3, 0, 0.1, 0] }}
+        transition={{ duration: 5, repeat: Infinity, times: [0, 0.05, 0.1, 0.15, 1] }}
+      />
+
+      {/* Electric Energy Animation Overlay */}
+      <div className="absolute inset-0 z-0 overflow-hidden opacity-60 pointer-events-none">
+        <svg className="absolute w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="electric-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="transparent" />
+              <stop offset="50%" stopColor="#a855f7" />
+              <stop offset="100%" stopColor="transparent" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Horizontal scanning energy lines */}
+          <motion.rect
+            x="0"
+            y="30%"
+            width="100%"
+            height="2"
+            fill="url(#electric-grad)"
+            filter="url(#glow)"
+            initial={{ x: "-100%", opacity: 0 }}
+            animate={{ x: "100%", opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.rect
+            x="0"
+            y="70%"
+            width="100%"
+            height="2"
+            fill="url(#electric-grad)"
+            filter="url(#glow)"
+            initial={{ x: "100%", opacity: 0 }}
+            animate={{ x: "-100%", opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "linear", delay: 2 }}
+          />
+
+          {/* Electric Arcs / Lightning */}
+          <motion.path
+            d="M -200,200 L 100,150 L 300,250 L 500,100 L 700,300 L 900,150 L 1200,250 L 1500,100 L 1800,200 L 2200,150"
+            fill="transparent"
+            stroke="#34d399"
+            strokeWidth="2"
+            filter="url(#glow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: [0, 1, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.path
+            d="M -200,800 L 200,850 L 400,750 L 600,900 L 800,750 L 1100,850 L 1400,700 L 1700,850 L 2200,750"
+            fill="transparent"
+            stroke="#a855f7"
+            strokeWidth="3"
+            filter="url(#glow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: [0, 1, 0] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "linear", delay: 1.2 }}
+          />
+        </svg>
+      </div>
+
       {/* Abstract Glowing Nodes */}
       <motion.div 
         animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
