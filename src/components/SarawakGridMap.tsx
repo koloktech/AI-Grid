@@ -65,6 +65,7 @@ export const SarawakGridMap: React.FC = () => {
   const [frequency, setFrequency] = useState(49.85);
   const [showSamalajuChart, setShowSamalajuChart] = useState(false);
   const [dispatchExecuted, setDispatchExecuted] = useState(false);
+  const [isProcessingDispatch, setIsProcessingDispatch] = useState(false);
 
   // Simulate grid frequency fluctuations
   useEffect(() => {
@@ -83,31 +84,36 @@ export const SarawakGridMap: React.FC = () => {
   }, [dispatchExecuted]);
 
   const handleDispatch = () => {
-    setDispatchExecuted(true);
+    setIsProcessingDispatch(true);
     
-    // Update connections for dispatch animation
-    setConnections(prev => prev.map(conn => {
-      if (conn.from === 'bakun' && conn.to === 'samalaju') {
-        return { ...conn, status: 'active', aiAlert: undefined, isDispatching: true, dispatchDirection: 'forward' };
-      }
-      if (conn.from === 'bintulu' && conn.to === 'samalaju') {
-        return { ...conn, isDispatching: true, dispatchDirection: 'forward' };
-      }
-      if (conn.from === 'bintulu' && conn.to === 'mukah') {
-        return { ...conn, isDispatching: true, dispatchDirection: 'backward' };
-      }
-      if (conn.from === 'mukah' && conn.to === 'kuching') {
-        return { ...conn, isDispatching: true, dispatchDirection: 'backward' };
-      }
-      return conn;
-    }));
+    setTimeout(() => {
+      setIsProcessingDispatch(false);
+      setDispatchExecuted(true);
+      
+      // Update connections for dispatch animation
+      setConnections(prev => prev.map(conn => {
+        if (conn.from === 'bakun' && conn.to === 'samalaju') {
+          return { ...conn, status: 'active', aiAlert: undefined, isDispatching: true, dispatchDirection: 'forward' };
+        }
+        if (conn.from === 'bintulu' && conn.to === 'samalaju') {
+          return { ...conn, isDispatching: true, dispatchDirection: 'forward' };
+        }
+        if (conn.from === 'bintulu' && conn.to === 'mukah') {
+          return { ...conn, isDispatching: true, dispatchDirection: 'backward' };
+        }
+        if (conn.from === 'mukah' && conn.to === 'kuching') {
+          return { ...conn, isDispatching: true, dispatchDirection: 'backward' };
+        }
+        return conn;
+      }));
 
-    // Update nodes to show increased output
-    setNodes(prev => prev.map(node => {
-      if (node.id === 'bakun') return { ...node, output: 98 };
-      if (node.id === 'kuching') return { ...node, output: 100 };
-      return node;
-    }));
+      // Update nodes to show increased output
+      setNodes(prev => prev.map(node => {
+        if (node.id === 'bakun') return { ...node, output: 98 };
+        if (node.id === 'kuching') return { ...node, output: 100 };
+        return node;
+      }));
+    }, 3500); // 3.5 seconds of AI processing
   };
 
   const get3DIconStyle = (type: string, status: string) => {
@@ -197,6 +203,40 @@ export const SarawakGridMap: React.FC = () => {
 
         {/* SVG Map Container */}
         <div className="relative w-full h-full min-h-[500px] rounded-xl overflow-hidden cursor-grab active:cursor-grabbing border border-zinc-800/50 bg-zinc-950/50">
+          
+          {/* AI Processing Overlay */}
+          <AnimatePresence>
+            {isProcessingDispatch && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-50 bg-zinc-950/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl border border-indigo-500/50 overflow-hidden"
+              >
+                {/* Background scanning lines */}
+                <motion.div 
+                  className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage: 'linear-gradient(transparent 50%, rgba(99, 102, 241, 0.2) 50%)',
+                    backgroundSize: '100% 4px'
+                  }}
+                  animate={{ backgroundPositionY: ['0px', '100px'] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                />
+
+                <Cpu className="w-16 h-16 text-indigo-400 mb-6 animate-pulse relative z-10" />
+                <h3 className="text-xl font-bold text-indigo-100 mb-6 tracking-widest uppercase relative z-10">AI Multi-Agent Orchestration</h3>
+                
+                <div className="space-y-3 w-80 relative z-10">
+                  <AgentTask text="Agent Alpha: Recalculating Load..." delay={0} />
+                  <AgentTask text="Agent Beta: Ramping Bakun HEP..." delay={0.8} />
+                  <AgentTask text="Agent Gamma: Stabilizing Frequency..." delay={1.6} />
+                  <AgentTask text="Agent Delta: Syncing Grid..." delay={2.4} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <TransformWrapper
             initialScale={1}
             minScale={0.5}
@@ -537,9 +577,13 @@ export const SarawakGridMap: React.FC = () => {
                   {!dispatchExecuted && (
                     <button 
                       onClick={handleDispatch}
-                      className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded transition-colors flex items-center justify-center gap-2"
+                      disabled={isProcessingDispatch}
+                      className={clsx(
+                        "w-full py-2 text-white text-xs font-medium rounded transition-colors flex items-center justify-center gap-2",
+                        isProcessingDispatch ? "bg-indigo-800 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-500"
+                      )}
                     >
-                      Execute AI Dispatch
+                      {isProcessingDispatch ? "Processing..." : "Execute AI Dispatch"}
                     </button>
                   )}
                 </div>
@@ -556,5 +600,21 @@ const ActivityIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
     <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
   </svg>
+);
+
+const AgentTask = ({ text, delay }: { text: string, delay: number }) => (
+  <motion.div 
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay, duration: 0.5 }}
+    className="flex items-center gap-3 text-sm text-indigo-300 font-mono bg-indigo-900/40 p-3 rounded border border-indigo-500/30 shadow-inner"
+  >
+    <motion.div 
+      animate={{ rotate: 360 }} 
+      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full flex-shrink-0"
+    />
+    {text}
+  </motion.div>
 );
 
